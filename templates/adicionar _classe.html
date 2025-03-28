@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Adicionar Classe</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chamada.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <ul>
+                <li><a href="{{ url_for('chamada') }}">Chamada</a></li>
+                <li><a href="{{ url_for('adicionar_classe') }}" class="active">Adicionar Classe</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h1>Adicionar Nova Classe</h1>
+            <form method="POST" action="{{ url_for('adicionar_classe') }}">
+                <label for="classe_nome">Nome da Classe:</label>
+                <input type="text" name="classe_nome" id="classe_nome" required>
+                <button type="submit">Adicionar Classe</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

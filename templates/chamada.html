@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Chamada</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chamada.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <ul>
+                <li><a href="{{ url_for('chamada') }}" class="active">Chamada</a></li>
+                <li><a href="{{ url_for('adicionar_classe') }}">Adicionar Classe</a></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <h1>Alunos</h1>
+            <form method="GET" action="{{ url_for('chamada') }}">
+                <label for="classe">Classe:</label>
+                <select name="idclasse" id="classe">
+                    <option value="">Selecione uma Classe</option>
+                    {% for classe in classes %}
+                    <option value="{{ classe['_id'] }}" {% if request.args.get('idclasse') == classe['_id'] %} selected {% endif %}>{{ classe['classe'] }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Filtrar</button>
+            </form>
+            <h2>Alunos da Classe Selecionada</h2>
+            <form method="POST" action="{{ url_for('chamada') }}">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>NIS</th>
+                                <th>Nome</th>
+                                <th>Falta turno 1</th>
+                                <th>Falta turno 2</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for aluno in alunos %}
+                            <tr>
+                                <td>{{ aluno['nis'] }}</td>
+                                <td>{{ aluno['nome'] }}</td>
+                                <td><input type="checkbox" name="faltas_turno1" value="{{ aluno['_id'] }}"></td>
+                                <td><input type="checkbox" name="faltas_turno2" value="{{ aluno['_id'] }}"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="submit">Salvar Presença</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
