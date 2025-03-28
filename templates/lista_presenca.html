@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Histórico de Presença</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lista_presenca.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Menu</h2>
+            <ul>
+                <li><a href="{{ url_for('chamada') }}">Chamada</a></li>
+                <li><a href="{{ url_for('adicionar_classe') }}">Adicionar Classe</a></li>
+                <li><a href="{{ url_for('adicionar_estudante') }}">Adicionar Estudante</a></li>
+                <li><a href="{{ url_for('lista_presenca') }}" class="active">Histórico de Chamadas</a></li>
+            </ul>
+        </div>
+
+        <div class="main-content">
+            <h1>Histórico de Presença</h1>
+        
+            <h2>Selecionar Classe</h2>
+            <form method="GET" action="{{ url_for('lista_presenca') }}">
+                <label for="classe">Escolha uma Classe:</label>
+                <select name="classe" id="classe">
+                    {% for classe in classes %}
+                        <option value="{{ classe['_id'] }}" {% if classe['_id'] == selected_classe %} selected {% endif %}>
+                            {{ classe['classe'] }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit">Filtrar</button>
+            </form>
+
+            {% if selected_classe %}
+                <h2>Histórico de Chamada para a Classe: {{ selected_classe_nome }}</h2>
+                {% for registro in registros %}
+                    {% if registro['_id'].classe == selected_classe %}
+                        <h3>Classe: {{ registro['_id'].classe }} - Data: {{ registro['_id'].data }}</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Aluno</th>
+                                    <th>Presença</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in registro.registros %}
+                                    <tr>
+                                        <td>{{ item.nome_aluno }}</td>
+                                        <td>{{ "Presente" if item.presenca else "Ausente" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <p>Selecione uma classe para visualizar o histórico de presença.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

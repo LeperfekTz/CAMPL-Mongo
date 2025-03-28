@@ -10,6 +10,28 @@ app.config["MONGO_URI"] = "mongodb+srv://leonardoarmbruster:Leperfekt210822.@mon
 mongo = PyMongo(app)
 
 
+@app.route('/lista_presenca', methods=['GET'])
+def lista_presenca():
+    selected_classe = request.args.get('classe')  # Obtém o ID da classe selecionada
+    selected_classe_nome = None
+    registros = []  # Substitua por sua consulta ao banco de dados
+
+    # Obtém todas as classes da coleção 'classes' no banco de dados
+    classes = mongo.db.classes.find()  # Modifique para sua consulta real de classes
+
+    # Se uma classe for selecionada, obtenha o nome da classe
+    if selected_classe:
+        for classe in classes:
+            if classe['_id'] == selected_classe:
+                selected_classe_nome = classe['classe']
+                break
+        # Filtre os registros com base na classe selecionada
+        registros = mongo.db.presencas.find({"classe": selected_classe})  # Exemplo de filtro de presenças
+
+    return render_template('lista_presenca.html', classes=classes, selected_classe=selected_classe, 
+                           selected_classe_nome=selected_classe_nome, registros=registros)
+
+
 @app.route("/salvar_presenca", methods=["POST"])
 def salvar_presenca():
     try:
@@ -23,7 +45,7 @@ def salvar_presenca():
                 # Insere a presença do aluno na coleção Lista_chamada
                 mongo.db.Lista_chamada.insert_one({
                     "aluno_id": aluno_id,
-                    "presenca": True,
+                    "Falta": True,
                     "data": datetime.now()
                 })
         
