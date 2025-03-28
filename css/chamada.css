@@ -124,29 +124,6 @@ form button:hover {
     color: #333;
 }
 
-.btn-adicionar {
-    display: flex;
-    align-items: center;
-    background-color: #4caf50;
-    color: #fff;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.btn-adicionar:hover {
-    background-color: #388e3c;
-}
-
-.btn-adicionar .icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px;
-}
-
 /* Tabela */
 .table-container {
     overflow-x: auto;
@@ -179,80 +156,26 @@ table tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
-table .btn-editar {
-    display: inline-flex;
-    align-items: center;
-    color: #000000;
-    text-decoration: none;
-    font-size: 0.9rem;
-    padding: 5px 10px;
-    border-radius: 5px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-}
 
-table .btn-editar:hover {
-    background-color: #4caf50;
-    color: #fff;
-}
 
-table .btn-editar .icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px;
-}
 
-.btn-excluir {
-    display: inline-flex;
-    align-items: center;
-    color: #000000;
-    text-decoration: none;
-    font-size: 0.9rem;
-    padding: 5px 10px;
-    border-radius: 5px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-}
-
-.btn-excluir:hover {
-    background-color: #af4c4c;
-    color: #fff;
-}
-
-.btn-excluir .icon {
-    width: 16px;
-    height: 16px;
-    margin-right: 5px;
-}
-
-/* Botão de salvar */
-#salvar-presenca {
+/* Botão fixo na parte inferior */
+.save-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px 30px;
     background-color: #4caf50;
     color: white;
-    padding: 10px 20px;
-    font-size: 16px;
+    font-size: 1rem;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
 }
 
-#salvar-presenca:hover {
-    background-color: #45a049;
-}
-
-/* Contador de presença */
-.contador-presenca {
-    font-size: 16px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-#contador-presentes {
-    font-weight: bold;
-    color: #4caf50;
+.save-button:hover {
+    background-color: #388e3c;
 }
 
 /* Responsividade */

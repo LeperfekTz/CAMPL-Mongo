@@ -12,45 +12,61 @@
             <ul>
                 <li><a href="{{ url_for('chamada') }}" class="active">Chamada</a></li>
                 <li><a href="{{ url_for('adicionar_classe') }}">Adicionar Classe</a></li>
+                <li><a href="{{ url_for('adicionar_estudante') }}">Adicionar Estudante</a></li>
             </ul>
         </div>
+
         <div class="main-content">
-            <h1>Alunos</h1>
-            <form method="GET" action="{{ url_for('chamada') }}">
+            <h1>Chamada de Alunos</h1>
+
+            <!-- Filtro de Classe -->
+            <form method="GET" action="{{ url_for('chamada') }}" class="filter-form">
                 <label for="classe">Classe:</label>
-                <select name="idclasse" id="classe">
+                <select name="classe_id" id="classe">
                     <option value="">Selecione uma Classe</option>
                     {% for classe in classes %}
-                    <option value="{{ classe['_id'] }}" {% if request.args.get('idclasse') == classe['_id'] %} selected {% endif %}>{{ classe['classe'] }}</option>
+                        <option value="{{ classe['_id'] }}" {% if request.args.get('classe_id') == classe['_id'] %} selected {% endif %}>{{ classe['classe'] }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit">Filtrar</button>
+                <button type="submit" class="filter-button">Filtrar</button>
             </form>
+
+            <!-- Flash Message -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <ul>
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
             <h2>Alunos da Classe Selecionada</h2>
-            <form method="POST" action="{{ url_for('chamada') }}">
+
+            <!-- Formulário para salvar presença -->
+            <form method="POST" action="{{ url_for('salvar_presenca') }}">
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>NIS</th>
                                 <th>Nome</th>
-                                <th>Falta turno 1</th>
-                                <th>Falta turno 2</th>
+                                <th>Presente</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for aluno in alunos %}
-                            <tr>
-                                <td>{{ aluno['nis'] }}</td>
-                                <td>{{ aluno['nome'] }}</td>
-                                <td><input type="checkbox" name="faltas_turno1" value="{{ aluno['_id'] }}"></td>
-                                <td><input type="checkbox" name="faltas_turno2" value="{{ aluno['_id'] }}"></td>
-                            </tr>
+                                <tr>
+                                    <td>{{ aluno['nome'] }}</td>
+                                    <td>
+                                        <input type="checkbox" name="presenca_{{ aluno['_id'] }}" value="{{ aluno['_id'] }}">
+                                    </td>
+                                </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-                <button type="submit">Salvar Presença</button>
+                <button type="submit" class="save-button">Salvar Presença</button>
             </form>
         </div>
     </div>
