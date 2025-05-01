@@ -32,6 +32,7 @@ def lista_presenca():
                            selected_classe_nome=selected_classe_nome, registros=registros)
 
 
+
 @app.route("/salvar_presenca", methods=["POST"])
 def salvar_presenca():
     try:
@@ -56,7 +57,7 @@ def salvar_presenca():
         flash(f"Ocorreu um erro ao registrar as presenças: {str(e)}")  # Exibe mensagem de erro
         return redirect(url_for('chamada'))
 
-@app.route("/chamada", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST"])
 def chamada():
     try:
         # Captura o ID da classe, se estiver presente
