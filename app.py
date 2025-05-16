@@ -146,7 +146,7 @@ def adicionar_classe():
                 if nome_classe:
                     mongo.db.classes.insert_one({"classe": nome_classe})  # Insere no banco
 
-            flash("Classe(s) adicionada(s) com sucesso!")  # Exibe mensagem de sucesso
+        flash("Classe adicionada com sucesso!", "success")
         
         return redirect(url_for("adicionar_classe"))  # Redireciona para evitar reenvio do formulário
 
