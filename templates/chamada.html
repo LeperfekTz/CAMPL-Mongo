@@ -26,7 +26,9 @@
                 <select name="classe_id" id="classe">
                     <option value="">Selecione uma Classe</option>
                     {% for classe in classes %}
-                        <option value="{{ classe['_id'] }}" {% if request.args.get('classe_id') == classe['_id'] %} selected {% endif %}>{{ classe['classe'] }}</option>
+                        <option value="{{ classe['_id'] }}" {% if request.args.get('classe_id') == classe['_id'] %} selected {% endif %}>
+                            {{ classe['classe'] }}
+                        </option>
                     {% endfor %}
                 </select>
                 <button type="submit" class="filter-button">Filtrar</button>
@@ -35,7 +37,7 @@
             <!-- Flash Message -->
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
-                    <ul>
+                    <ul class="flash-messages">
                         {% for message in messages %}
                             <li>{{ message }}</li>
                         {% endfor %}
@@ -47,6 +49,9 @@
 
             <!-- Formulário para salvar presença -->
             <form method="POST" action="{{ url_for('salvar_presenca') }}">
+                <!-- Campo escondido para enviar o ID da classe junto -->
+                <input type="hidden" name="classe_id" value="{{ request.args.get('classe_id') }}">
+
                 <div class="table-container">
                     <table>
                         <thead>

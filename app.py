@@ -2,6 +2,19 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_pymongo import PyMongo
 from pymongo.errors import ConnectionFailure
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
+
+from bson import ObjectId
+
+
+
+
+
+
+
+
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "Leperfetk210822."  # Necessário para usar flash messages
 
@@ -9,76 +22,121 @@ app.config["SECRET_KEY"] = "Leperfetk210822."  # Necessário para usar flash mes
 app.config["MONGO_URI"] = "mongodb+srv://leonardoarmbruster:Leperfekt210822.@mongodb.fcezg.mongodb.net/CAMPL?retryWrites=true&w=majority"
 mongo = PyMongo(app)
 
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Verifica se a cole o de usu rios existe
+    if 'usuarios' not in mongo.db.list_collection_names():
+        mongo.db.create_collection('usuarios')
+        # Cria um usu rio administrador padr o, com email 'admin@admin.com' e senha 'admin'
+        mongo.db.usuarios.insert_one({
+            "email": 'admin@admin.com',
+            "senha": generate_password_hash('admin')
+        })
+    
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        senha = request.form.get('senha', '')
+
+        user = mongo.db.usuarios.find_one({'email': email})
+        if user and check_password_hash(user['senha'], senha):
+            session['email'] = email
+            return redirect(url_for('chamada'))
+        else:
+            flash('Usuario ou senha invalido')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
 
 @app.route('/lista_presenca', methods=['GET'])
 def lista_presenca():
-    selected_classe = request.args.get('classe')  # Obtém o ID da classe selecionada
-    selected_classe_nome = None
-    registros = []  # Substitua por sua consulta ao banco de dados
+    selected_classe = request.args.get('classe')  # ID da classe selecionada (como string)
+    registros = []
 
-    # Obtém todas as classes da coleção 'classes' no banco de dados
-    classes = mongo.db.classes.find()  # Modifique para sua consulta real de classes
+    # Obtém todas as classes
+    classes = list(mongo.db.classes.find())
 
-    # Se uma classe for selecionada, obtenha o nome da classe
     if selected_classe:
-        for classe in classes:
-            if classe['_id'] == selected_classe:
-                selected_classe_nome = classe['classe']
-                break
-        # Filtre os registros com base na classe selecionada
-        registros = mongo.db.presencas.find({"classe": selected_classe})  # Exemplo de filtro de presenças
+        try:
+            classe_obj_id = ObjectId(selected_classe)
+            selected_classe_obj = mongo.db.classes.find_one({"_id": classe_obj_id})
+            selected_classe_nome = selected_classe_obj['classe'] if selected_classe_obj else None
 
-    return render_template('lista_presenca.html', classes=classes, selected_classe=selected_classe, 
-                           selected_classe_nome=selected_classe_nome, registros=registros)
+            # Filtra registros da classe selecionada
+            registros = list(mongo.db.Lista_chamada.find({"classe_id": selected_classe}))
+        except Exception as e:
+            flash(f"Erro ao buscar registros: {e}", "error")
+            selected_classe_nome = None
+    else:
+        # Exibe todas as presenças de todas as classes
+        registros = list(mongo.db.Lista_chamada.find())
 
-
+    return render_template(
+        'lista_presenca.html',
+        classes=classes,
+        selected_classe=selected_classe,
+        selected_classe_nome=selected_classe_nome if selected_classe else None,
+        registros=registros
+    )
 
 @app.route("/salvar_presenca", methods=["POST"])
 def salvar_presenca():
     try:
-        # Pega os dados do formulário (checkboxes com os IDs dos alunos presentes)
-        presencas = request.form
+        classe_id = request.form.get('classe_id')  # Pegue o id da classe selecionada no formulário
+        if not classe_id:
+            flash("Classe não selecionada.")
+            return redirect(url_for('chamada'))
 
-        # Itera sobre todos os alunos e verifica quais estão presentes
-        for aluno_id in presencas:
-            if aluno_id.startswith('presenca_'):  # Verifica se o nome do campo é referente a um aluno presente
-                aluno_id = aluno_id.split('_')[1]  # Pega o ID do aluno (que está após "presenca_")
-                # Insere a presença do aluno na coleção Lista_chamada
+        presencas = request.form  # Todos os dados do formulário
+
+        # Itera pelos campos para pegar os alunos presentes
+        for key in presencas:
+            if key.startswith('presenca_'):
+                aluno_id = key.split('_')[1]  # pega o id do aluno
+
+                # Busca dados do aluno (opcional, só se quiser salvar nome/email na presença)
+                aluno = mongo.db.estudantes.find_one({"_id": ObjectId(aluno_id)})
+                classe = mongo.db.classes.find_one({"_id": ObjectId(classe_id)})
+
                 mongo.db.Lista_chamada.insert_one({
-                    "aluno_id": aluno_id,
-                    "Falta": True,
-                    "data": datetime.now()
+                    "data": datetime.now(),
+                    "nome_aluno": aluno['nome'] if aluno else None,
+                    "email_aluno": aluno['email'] if aluno else None,
+                    "nome_classe": classe['classe'] if classe else None,
+                    "presenca": True
                 })
-        
-        flash("Presenças registradas com sucesso!")  # Exibe mensagem de sucesso
-        return redirect(url_for('chamada'))  # Redireciona de volta à página de chamada
+
+        # Registra as presenças no banco de dados
+
+        flash("Presenças registradas com sucesso!")
+        return redirect(url_for('chamada', classe_id=classe_id))
 
     except Exception as e:
-        flash(f"Ocorreu um erro ao registrar as presenças: {str(e)}")  # Exibe mensagem de erro
+        flash(f"Ocorreu um erro ao registrar as presenças: {str(e)}")
         return redirect(url_for('chamada'))
+    
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/chamada", methods=["GET", "POST"])
 def chamada():
     try:
-        # Captura o ID da classe, se estiver presente
-        classe_id = request.args.get('classe_id')  # Pega o valor do filtro
-        
-        # Busca todas as classes
+        classe_id = request.args.get('classe_id')
         classes = list(mongo.db.classes.find())
-        
-        # Filtra alunos com base na classe selecionada
+
         if classe_id:
-            # Filtra alunos pela classe_id
             alunos = list(mongo.db.estudantes.find({"classe_id": classe_id}))
         else:
-            # Caso não tenha classe selecionada, exibe todos os alunos
             alunos = list(mongo.db.estudantes.find())
-        
+
+        # Converte os _id para string para usar no template
+        for aluno in alunos:
+            aluno['_id'] = str(aluno['_id'])
+
         return render_template("chamada.html", classes=classes, alunos=alunos)
 
     except ConnectionFailure:
         return "Erro ao acessar o banco de dados. Verifique a conexão com o MongoDB."
-
 
 @app.route("/adicionar_classe", methods=["GET", "POST"])
 def adicionar_classe():
