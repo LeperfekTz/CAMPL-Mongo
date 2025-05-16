@@ -1,80 +1,50 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Lista de Chamada</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chamada.css') }}">
-</head>
-<body>
-    <div class="container">
-        <div class="sidebar">
-            <h2>Menu</h2>
-            <ul>
-                <li><a href="{{ url_for('chamada') }}" class="active">Chamada</a></li>
-                <li><a href="{{ url_for('adicionar_classe') }}">Adicionar Classe</a></li>
-                <li><a href="{{ url_for('adicionar_estudante') }}">Adicionar Estudante</a></li>
-                <li><a href="{{ url_for('lista_presenca') }}">Histórico de Chamadas</a></li>
-            </ul>
-        </div>
+{% extends "base/base.html" %}
 
-        <div class="main-content">
-            <h1>Chamada de Alunos</h1>
+{% block title %}Chamada{% endblock %}
 
-            <!-- Filtro de Classe -->
-            <form method="GET" action="{{ url_for('chamada') }}" class="filter-form">
-                <label for="classe">Classe:</label>
-                <select name="classe_id" id="classe">
-                    <option value="">Selecione uma Classe</option>
-                    {% for classe in classes %}
-                        <option value="{{ classe['_id'] }}" {% if request.args.get('classe_id') == classe['_id'] %} selected {% endif %}>
-                            {{ classe['classe'] }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="filter-button">Filtrar</button>
-            </form>
+{% block content %}
+<h1>Chamada de Alunos</h1>
 
-            <!-- Flash Message -->
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <ul class="flash-messages">
-                        {% for message in messages %}
-                            <li>{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            {% endwith %}
+<form method="GET" action="{{ url_for('chamada') }}" class="filter-form">
+    <label for="classe">Classe:</label>
+    <select name="classe_id" id="classe">
+        <option value="">Selecione uma Classe</option>
+        {% for classe in classes %}
+            <option value="{{ classe['_id'] }}" {% if request.args.get('classe_id') == classe['_id'] %} selected {% endif %}>
+                {{ classe['classe'] }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="filter-button">Filtrar</button>
+</form>
 
-            <h2>Alunos da Classe Selecionada</h2>
+<h2>Alunos da Classe Selecionada</h2>
 
-            <!-- Formulário para salvar presença -->
-            <form method="POST" action="{{ url_for('salvar_presenca') }}">
-                <!-- Campo escondido para enviar o ID da classe junto -->
-                <input type="hidden" name="classe_id" value="{{ request.args.get('classe_id') }}">
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Presente</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for aluno in alunos %}
-                                <tr>
-                                    <td>{{ aluno['nome'] }}</td>
-                                    <td>
-                                        <input type="checkbox" name="presenca_{{ aluno['_id'] }}" value="{{ aluno['_id'] }}">
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <button type="submit" class="save-button">Salvar Presença</button>
-            </form>
-        </div>
+<form method="POST" action="{{ url_for('salvar_presenca') }}">
+    <input type="hidden" name="classe_id" value="{{ request.args.get('classe_id') }}">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Presente</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for aluno in alunos %}
+                <tr>
+                    <th>{{ aluno['nome'] }}</th>
+                    <td>
+                        <label>
+                            <input type="hidden" name="aluno_id[]" value="{{ aluno['_id'] }}">
+                            <input type="checkbox" name="presenca_{{ aluno['_id'] }}">
+                        </label>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-</body>
-</html>
+    <button type="submit" class="save-button">Salvar Presença</button>
+</form>
+{% endblock %}

@@ -1,67 +1,49 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Histórico de Presença</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/lista_presenca.css') }}">
-</head>
-<body>
-    <div class="container">
-        <div class="sidebar">
-            <h2>Menu</h2>
-            <ul>
-                <li><a href="{{ url_for('chamada') }}">Chamada</a></li>
-                <li><a href="{{ url_for('adicionar_classe') }}">Adicionar Classe</a></li>
-                <li><a href="{{ url_for('adicionar_estudante') }}">Adicionar Estudante</a></li>
-                <li><a href="{{ url_for('lista_presenca') }}" class="active">Histórico de Chamadas</a></li>
-            </ul>
-        </div>
+{% extends "base/base.html" %}
 
-        <div class="main-content">
-            <h1>Histórico de Presença</h1>
+{% block title %}Histórico de Presença{% endblock %}
 
-            <!-- Filtro de Classe -->
-            <h2>Selecionar Classe</h2>
-            <form method="GET" action="{{ url_for('lista_presenca') }}">
-                <label for="classe">Escolha uma Classe:</label>
-                <select name="classe" id="classe">
-                    <option value="">-- Todas as Classes --</option>
-                    {% for classe in classes %}
-                        <option value="{{ classe['_id'] }}" {% if classe['_id'] == selected_classe %} selected {% endif %}>
-                            {{ classe['classe'] }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <button type="submit">Filtrar</button>
-            </form>
+{% block content %}
+<h1>Histórico de Presença</h1>
 
-            {% if registros %}
-                <h2>{% if selected_classe_nome %}Histórico da Classe: {{ selected_classe_nome }}{% else %}Todas as Presenças{% endif %}</h2>
+<!-- Filtro de Classe -->
+<h2>Selecionar Classe</h2>
+<form method="GET" action="{{ url_for('lista_presenca') }}">
+    <label for="classe">Escolha uma Classe:</label>
+    <select name="classe" id="classe">
+        <option value="">Todas as Classes</option>
+        {% for classe in classes %}
+        <option value="{{ classe['_id'] }}" {% if classe['_id']|string == request.args.get('classe') %} selected {% endif %}>
+            {{ classe['classe'] }}
+        </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filtrar</button>
+</form>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Classe</th>
-                            <th>Aluno</th>
-                            <th>Presença</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for registro in registros %}
-                            <tr>
-                                <td>{{ registro['data'].strftime('%d/%m/%Y %H:%M') }}</td>
-                                <td>{{ registro['nome_classe'] }}</td>
-                                <td>{{ registro['nome_aluno'] }}</td>
-                                <td>{{ "Presente" if registro.get('presenca', True) else "Ausente" }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>Nenhum registro encontrado para esta classe.</p>
-            {% endif %}
-        </div>
-    </div>
-</body>
-</html>
+{% if registros %}
+    <h2>{% if request.args.get('classe') %}Histórico da Classe: {{ selected_classe_nome }}{% else %}Todas as Presenças{% endif %}</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Classe</th>
+                <th>Aluno</th>
+                <th>Presença</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for registro in registros %}
+                <tr>
+                    <td>{{ registro['data'].strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>{{ registro['nome_classe'] }}</td>
+                    <td>{{ registro['nome_aluno'] }}</td>
+                    <td>{{ "Presente" if registro.get('presenca', True) else "Ausente" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Nenhum registro encontrado para esta classe.</p>
+{% endif %}
+{% endblock %}
