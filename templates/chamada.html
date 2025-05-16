@@ -23,8 +23,11 @@
         </div>
     </form>
 
-    <h2 class="mb-4">Alunos da Classe Selecionada</h2>
-
+    <h2 class="mb-4">
+        Alunos da Classe: {{ classe['classe'] if classe else 'Nenhuma classe selecionada' }}
+      </h2>
+      
+      
     <form method="POST" action="{{ url_for('salvar_presenca') }}">
         <input type="hidden" name="classe_id" value="{{ request.args.get('classe_id') }}">
         <div class="table-responsive mb-4">
@@ -54,3 +57,4 @@
     </form>
 </div>
 {% endblock %}
+

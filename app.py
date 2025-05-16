@@ -4,7 +4,6 @@ from pymongo.errors import ConnectionFailure
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, session
-
 from bson import ObjectId
 
 
@@ -112,28 +111,29 @@ def salvar_presenca():
     except Exception as e:
         flash(f"Ocorreu um erro ao registrar as presenças: {str(e)}")
         return redirect(url_for('chamada'))
-
-    
-
 @app.route("/chamada", methods=["GET", "POST"])
 def chamada():
     try:
         classe_id = request.args.get('classe_id')
-        classes = list(mongo.db.classes.find())
 
         if classe_id:
-            alunos = list(mongo.db.estudantes.find({"classe_id": classe_id}))
+            classe = mongo.db.classes.find_one({"_id": ObjectId(classe_id)})
+            alunos = list(mongo.db.estudantes.find({"classe_id": ObjectId(classe_id)}))
         else:
+            classe = None
             alunos = list(mongo.db.estudantes.find())
+
+        classes = list(mongo.db.classes.find())
 
         # Converte os _id para string para usar no template
         for aluno in alunos:
             aluno['_id'] = str(aluno['_id'])
 
-        return render_template("chamada.html", classes=classes, alunos=alunos)
+        return render_template("chamada.html", classes=classes, alunos=alunos, classe=classe)
 
     except ConnectionFailure:
         return "Erro ao acessar o banco de dados. Verifique a conexão com o MongoDB."
+
 
 @app.route("/adicionar_classe", methods=["GET", "POST"])
 def adicionar_classe():

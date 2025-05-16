@@ -1,0 +1,53 @@
+/* base.css */
+
+/* Estilo responsivo para dispositivos móveis */
+@media (max-width: 768px) {
+    .container {
+      max-width: 100%;
+      padding: 0 1rem;
+    }
+  
+    .main-header {
+      text-align: center;
+    }
+  
+    .navbar-nav {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .navbar-nav .nav-item {
+      margin-bottom: 0.5rem;
+      width: 100%;
+    }
+  
+    .navbar-nav .nav-link {
+      padding-left: 1rem;
+    }
+  
+    .navbar-toggler {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  
+    .table-responsive {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  
+    .alert {
+      font-size: 0.9rem;
+      padding: 0.75rem;
+    }
+  
+    h1, h2, h3 {
+      font-size: 1.5rem;
+      text-align: center;
+    }
+  
+    button, input {
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+  }
+  
