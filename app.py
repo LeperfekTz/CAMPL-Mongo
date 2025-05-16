@@ -65,7 +65,7 @@ def lista_presenca():
             selected_classe_nome = selected_classe_obj['classe'] if selected_classe_obj else None
 
             # Filtra registros da classe selecionada
-            registros = list(mongo.db.Lista_chamada.find({"classe_id": selected_classe}))
+            registros = list(mongo.db.Lista_chamada.find({"classe_id": ObjectId(selected_classe)}))
         except Exception as e:
             flash(f"Erro ao buscar registros: {e}", "error")
             selected_classe_nome = None
@@ -84,31 +84,27 @@ def lista_presenca():
 @app.route("/salvar_presenca", methods=["POST"])
 def salvar_presenca():
     try:
-        classe_id = request.form.get('classe_id')  # Pegue o id da classe selecionada no formulário
+        classe_id = request.form.get('classe_id')
         if not classe_id:
             flash("Classe não selecionada.")
             return redirect(url_for('chamada'))
 
-        presencas = request.form  # Todos os dados do formulário
+        aluno_ids = request.form.getlist('aluno_id[]')
 
-        # Itera pelos campos para pegar os alunos presentes
-        for key in presencas:
-            if key.startswith('presenca_'):
-                aluno_id = key.split('_')[1]  # pega o id do aluno
+        for aluno_id in aluno_ids:
+            presente = f'presenca_{aluno_id}' in request.form
 
-                # Busca dados do aluno (opcional, só se quiser salvar nome/email na presença)
-                aluno = mongo.db.estudantes.find_one({"_id": ObjectId(aluno_id)})
-                classe = mongo.db.classes.find_one({"_id": ObjectId(classe_id)})
+            aluno = mongo.db.estudantes.find_one({"_id": ObjectId(aluno_id)})
+            classe = mongo.db.classes.find_one({"_id": ObjectId(classe_id)})
 
-                mongo.db.Lista_chamada.insert_one({
-                    "data": datetime.now(),
-                    "nome_aluno": aluno['nome'] if aluno else None,
-                    "email_aluno": aluno['email'] if aluno else None,
-                    "nome_classe": classe['classe'] if classe else None,
-                    "presenca": True
-                })
-
-        # Registra as presenças no banco de dados
+            mongo.db.Lista_chamada.insert_one({
+                "data": datetime.now(),
+                "nome_aluno": aluno['nome'] if aluno else None,
+                "email_aluno": aluno['email'] if aluno else None,
+                "nome_classe": classe['classe'] if classe else None,
+                "presenca": presente,
+                "classe_id": ObjectId(classe_id),
+            })
 
         flash("Presenças registradas com sucesso!")
         return redirect(url_for('chamada', classe_id=classe_id))
@@ -116,6 +112,7 @@ def salvar_presenca():
     except Exception as e:
         flash(f"Ocorreu um erro ao registrar as presenças: {str(e)}")
         return redirect(url_for('chamada'))
+
     
 
 @app.route("/chamada", methods=["GET", "POST"])
@@ -183,4 +180,5 @@ def adicionar_estudante():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
+
