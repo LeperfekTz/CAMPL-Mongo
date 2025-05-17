@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from bson import ObjectId
 from bson.errors import InvalidId
+from flask import jsonify
 
 
 
@@ -130,7 +131,7 @@ def chamada():
         for aluno in alunos:
             aluno['_id'] = str(aluno['_id'])
 
-        return render_template("chamada.html", classes=classes, alunos=alunos, classe=classe, estudante=None)
+        return render_template("chamada.html", classes=classes, alunos=alunos, classe=classe)
 
     except ConnectionFailure:
         return "Erro ao acessar o banco de dados. Verifique a conexão com o MongoDB."
@@ -188,6 +189,12 @@ def editar_estudante(id):
         if not estudante:
             flash("Estudante não encontrado.", "error")
             return redirect(url_for('adicionar_estudante'))
+        
+        if request.method == 'POST':
+            if 'apagar' in request.form:
+                mongo.db.estudantes.delete_one({"_id": ObjectId(id)})
+                flash("Estudante apagado(a) com sucesso!", "success")
+                return redirect(url_for('adicionar_estudante'))
 
         if request.method == 'POST':
             nome = request.form['name']
@@ -226,20 +233,38 @@ def editar_classe(id):
             return redirect(url_for('adicionar_classe'))
 
         if request.method == 'POST':
-            novo_nome = request.form.get("classe_nome")
-            if novo_nome:
-                mongo.db.classes.update_one(
-                    {"_id": ObjectId(id)},
-                    {"$set": {"classe": novo_nome}}
-                )
-                flash("Classe atualizada com sucesso!", "success")
+            if 'apagar' in request.form:
+                mongo.db.classes.delete_one({"_id": ObjectId(id)})
+                flash("Classe apagada com sucesso!", "success")
                 return redirect(url_for('adicionar_classe'))
+            else:
+                novo_nome = request.form.get("classe_nome")
+                if novo_nome:
+                    mongo.db.classes.update_one(
+                        {"_id": ObjectId(id)},
+                        {"$set": {"classe": novo_nome}}
+                    )
+                    flash("Classe atualizada com sucesso!", "success")
+                    return redirect(url_for('adicionar_classe'))
 
         return render_template("editar_classe.html", classe=classe)
 
     except InvalidId:
         flash("ID de classe inválido.", "error")
         return redirect(url_for("adicionar_classe"))
+
+@app.route('/api/classes')
+def listar_classes():
+    classes_cursor = mongo.db.classes.find()
+    classes = list(classes_cursor)
+    lista = [{"id": str(c["_id"]), "nome": c["classe"]} for c in classes]  # <-- aqui
+    return jsonify(lista)
+
+@app.route('/api/estudantes')
+def api_estudantes():
+    estudantes = mongo.db.estudantes.find()
+    return jsonify([{'id': e['_id'], 'nome': e['nome']} for e in estudantes])
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

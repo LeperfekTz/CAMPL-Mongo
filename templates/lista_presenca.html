@@ -43,7 +43,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for registro in registros %}
+                {% for registro in registros|sort(attribute='data', reverse=True) %}
                 <tr>
                     <td>{{ registro['data'].strftime('%d/%m/%Y %H:%M') }}</td>
                     <td>{{ registro['nome_classe'] }}</td>
@@ -65,3 +65,4 @@
   {% endif %}
 </div>
 {% endblock %}
+
