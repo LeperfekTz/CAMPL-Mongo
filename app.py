@@ -1,17 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import jsonify
 from flask_pymongo import PyMongo
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from pymongo.errors import ConnectionFailure
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import Flask, render_template, request, redirect, url_for, flash, session
 from bson import ObjectId
 from bson.errors import InvalidId
-from flask import jsonify
-
-
-
-
-
 
 
 
@@ -26,17 +20,10 @@ mongo = PyMongo(app)
 @app.route('/')
 def index():
     return redirect(url_for('login'))
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Verifica se a cole o de usu rios existe
-    if 'usuarios' not in mongo.db.list_collection_names():
-        mongo.db.create_collection('usuarios')
-        # Cria um usu rio administrador padr o, com email 'admin@admin.com' e senha 'admin'
-        mongo.db.usuarios.insert_one({
-            "email": 'admin@admin.com',
-            "senha": generate_password_hash('admin')
-        })
-    
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         senha = request.form.get('senha', '')
@@ -120,7 +107,7 @@ def chamada():
 
         if classe_id:
             classe = mongo.db.classes.find_one({"_id": ObjectId(classe_id)})
-            alunos = list(mongo.db.estudantes.find({"classe_id": ObjectId(classe_id)}))
+            alunos = list(mongo.db.estudantes.find({"classe_id": classe_id}))  # Sem    
         else:
             classe = None
             alunos = list(mongo.db.estudantes.find())
@@ -153,8 +140,6 @@ def adicionar_classe():
         return redirect(url_for("adicionar_classe"))  # Redireciona para evitar reenvio do formulário
 
     return render_template("adicionar_classe.html")
-
-
 
 
 @app.route('/adicionar_estudante', methods=['GET', 'POST'])
