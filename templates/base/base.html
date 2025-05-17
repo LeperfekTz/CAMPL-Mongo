@@ -265,19 +265,40 @@
       const inputPesquisarEstudante = document.getElementById("inputPesquisarEstudante");
     
       let classesCache = []; // Guarda as classes carregadas para filtrar localmente
+      let estudantesCache = []; // Guarda os estudantes carregados para filtrar localmente
+    
+      // Função debounce para limitar chamadas de pesquisa
+      function debounce(func, timeout = 300) {
+        let timer;
+        return (...args) => {
+          clearTimeout(timer);
+          timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+      }
     
       // Função para carregar classes via API e armazenar na cache
       function carregarClasses() {
-        listaClasses.innerHTML = '<li class="list-group-item">Carregando...</li>';
+        listaClasses.innerHTML = '<li class="list-group-item loading">Carregando classes...</li>';
     
         fetch("/api/classes")
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok) throw new Error("Erro na requisição");
+            return res.json();
+          })
           .then((classes) => {
             classesCache = classes; // armazena para filtro local
             filtrarClasses(inputPesquisarClasse.value || "");
           })
-          .catch(() => {
-            listaClasses.innerHTML = '<li class="list-group-item text-danger">Erro ao carregar classes.</li>';
+          .catch((error) => {
+            console.error("Erro ao carregar classes:", error);
+            listaClasses.innerHTML = `
+              <li class="list-group-item error">
+                Erro ao carregar classes.
+                <button class="btn btn-sm btn-outline-light" onclick="carregarClasses()">
+                  Tentar novamente
+                </button>
+              </li>
+            `;
           });
       }
     
@@ -310,36 +331,72 @@
         });
       }
     
-      // Função para carregar estudantes via API e filtrar por pesquisa
+      // Função para carregar estudantes via API
       function carregarEstudantes(filtro = "") {
-        listaEstudantes.innerHTML = '<li class="list-group-item">Carregando...</li>';
+        // Se já temos os estudantes em cache, filtre localmente
+        if (estudantesCache.length > 0) {
+          filtrarEstudantes(filtro);
+          return;
+        }
+    
+        listaEstudantes.innerHTML = '<li class="list-group-item loading">Carregando estudantes...</li>';
     
         fetch("/api/estudantes")
-          .then((res) => res.json())
-          .then((estudantes) => {
-            if (filtro) {
-              const filtroMinusculo = filtro.toLowerCase();
-              estudantes = estudantes.filter((e) => e.nome.toLowerCase().includes(filtroMinusculo));
-            }
-            if (estudantes.length === 0) {
-              listaEstudantes.innerHTML = '<li class="list-group-item">Nenhum estudante encontrado.</li>';
-              return;
-            }
-            listaEstudantes.innerHTML = "";
-            estudantes.sort((a, b) => a.nome.localeCompare(b.nome));
-            estudantes.forEach((estudante) => {
-              const li = document.createElement("li");
-              li.className = "list-group-item list-group-item-action";
-              li.textContent = estudante.nome;
-              li.onclick = () => {
-                window.location.href = `/editar_estudante/${estudante.id}`;
-              };
-              listaEstudantes.appendChild(li);
-            });
+          .then((res) => {
+            if (!res.ok) throw new Error("Erro na requisição");
+            return res.json();
           })
-          .catch(() => {
-            listaEstudantes.innerHTML = '<li class="list-group-item text-danger">Erro ao carregar estudantes.</li>';
+          .then((estudantes) => {
+            estudantesCache = estudantes; // Armazena no cache
+            filtrarEstudantes(filtro);
+          })
+          .catch((error) => {
+            console.error("Erro ao carregar estudantes:", error);
+            listaEstudantes.innerHTML = `
+              <li class="list-group-item error">
+                Erro ao carregar estudantes.
+                <button class="btn btn-sm btn-outline-light" onclick="carregarEstudantes()">
+                  Tentar novamente
+                </button>
+              </li>
+            `;
           });
+      }
+    
+      // Função para filtrar estudantes e atualizar a lista
+      function filtrarEstudantes(filtro = "") {
+        const filtroMinusculo = filtro.toLowerCase();
+        let filtrados = estudantesCache;
+    
+        if (filtroMinusculo) {
+          filtrados = estudantesCache.filter(e => 
+            e.nome.toLowerCase().includes(filtroMinusculo)
+          );
+        }
+    
+        if (filtrados.length === 0) {
+          listaEstudantes.innerHTML = '<li class="list-group-item">Nenhum estudante encontrado.</li>';
+          return;
+        }
+    
+        listaEstudantes.innerHTML = "";
+        filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
+        
+        filtrados.forEach((estudante) => {
+          const li = document.createElement("li");
+          li.className = "list-group-item list-group-item-action";
+          li.textContent = estudante.nome;
+          li.onclick = () => {
+            console.log("Dados do estudante:", estudante);  // Verifique a estrutura do objeto
+            if (estudante._id) {
+                window.location.href = `/editar_estudante/${estudante._id}`;
+            } else {
+                console.error("ID não encontrado em:", estudante);
+                alert("Erro: ID do estudante não encontrado");
+            }
+        };
+          listaEstudantes.appendChild(li);
+        });
       }
     
       // Quando modal Editar Classe abrir, carrega as classes e limpa input de pesquisa
@@ -351,19 +408,24 @@
     
       // Quando modal Editar Estudante abrir, carrega os estudantes (sem filtro)
       const modalEditarEstudante = document.getElementById("modalEditarEstudante");
-      modalEditarEstudante.addEventListener("show.bs.modal", () => carregarEstudantes());
-    
-      // Pesquisa dinâmica no input dos estudantes
-      inputPesquisarEstudante.addEventListener("input", () => {
-        carregarEstudantes(inputPesquisarEstudante.value);
+      modalEditarEstudante.addEventListener("show.bs.modal", () => {
+        inputPesquisarEstudante.value = "";
+        carregarEstudantes();
       });
     
-      // Pesquisa dinâmica no input das classes
-      inputPesquisarClasse.addEventListener("input", () => {
-        filtrarClasses(inputPesquisarClasse.value);
-      });
+      // Pesquisa dinâmica no input dos estudantes com debounce
+      inputPesquisarEstudante.addEventListener(
+        "input", 
+        debounce(() => filtrarEstudantes(inputPesquisarEstudante.value))
+      );
+    
+      // Pesquisa dinâmica no input das classes com debounce
+      inputPesquisarClasse.addEventListener(
+        "input", 
+        debounce(() => filtrarClasses(inputPesquisarClasse.value))
+      );
     });
-    
   </script>
 </body>
 </html>
+

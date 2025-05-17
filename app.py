@@ -182,6 +182,7 @@ def adicionar_estudante():
 
     return render_template('adicionar_estudante.html', classes=classes)
 
+
 @app.route('/editar_estudante/<id>', methods=['GET', 'POST'])
 def editar_estudante(id):
     try:
@@ -189,14 +190,17 @@ def editar_estudante(id):
         if not estudante:
             flash("Estudante não encontrado.", "error")
             return redirect(url_for('adicionar_estudante'))
-        
+
+        # Converte o ObjectId para string para evitar problemas no template
+        estudante['_id'] = str(estudante['_id'])
+
         if request.method == 'POST':
             if 'apagar' in request.form:
                 mongo.db.estudantes.delete_one({"_id": ObjectId(id)})
                 flash("Estudante apagado(a) com sucesso!", "success")
                 return redirect(url_for('adicionar_estudante'))
 
-        if request.method == 'POST':
+            # Atualizar dados do estudante
             nome = request.form['name']
             email = request.form['email']
             idade = request.form['age']
@@ -215,7 +219,7 @@ def editar_estudante(id):
             flash("Estudante atualizado com sucesso!", "success")
             return redirect(url_for('adicionar_estudante'))
 
-        # Buscar classes disponíveis para o dropdown
+        # Buscar classes para dropdown
         classes = list(mongo.db.classes.find())
 
         return render_template('editar_estudante.html', estudante=estudante, classes=classes)
@@ -263,9 +267,14 @@ def listar_classes():
 @app.route('/api/estudantes')
 def api_estudantes():
     estudantes = mongo.db.estudantes.find()
-    return jsonify([{'id': e['_id'], 'nome': e['nome']} for e in estudantes])
-
-
+    result = []
+    for e in estudantes:
+        result.append({
+            '_id': str(e['_id']),  # Convertendo ObjectId para string
+            'nome': e['nome'],
+            'classe_id': str(e.get('classe_id', ''))  # Adicionando classe_id se necessário
+        })
+    return jsonify(result)
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
 
