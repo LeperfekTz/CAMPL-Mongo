@@ -5,6 +5,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from bson import ObjectId
+from bson.errors import InvalidId
 
 
 
@@ -129,7 +130,7 @@ def chamada():
         for aluno in alunos:
             aluno['_id'] = str(aluno['_id'])
 
-        return render_template("chamada.html", classes=classes, alunos=alunos, classe=classe)
+        return render_template("chamada.html", classes=classes, alunos=alunos, classe=classe, estudante=None)
 
     except ConnectionFailure:
         return "Erro ao acessar o banco de dados. Verifique a conexão com o MongoDB."
@@ -151,6 +152,9 @@ def adicionar_classe():
         return redirect(url_for("adicionar_classe"))  # Redireciona para evitar reenvio do formulário
 
     return render_template("adicionar_classe.html")
+
+
+
 
 @app.route('/adicionar_estudante', methods=['GET', 'POST'])
 def adicionar_estudante():
@@ -177,7 +181,65 @@ def adicionar_estudante():
 
     return render_template('adicionar_estudante.html', classes=classes)
 
+@app.route('/editar_estudante/<id>', methods=['GET', 'POST'])
+def editar_estudante(id):
+    try:
+        estudante = mongo.db.estudantes.find_one({"_id": ObjectId(id)})
+        if not estudante:
+            flash("Estudante não encontrado.", "error")
+            return redirect(url_for('adicionar_estudante'))
 
+        if request.method == 'POST':
+            nome = request.form['name']
+            email = request.form['email']
+            idade = request.form['age']
+            classe_id = request.form['classe_id']
+
+            mongo.db.estudantes.update_one(
+                {"_id": ObjectId(id)},
+                {"$set": {
+                    'nome': nome,
+                    'email': email,
+                    'idade': idade,
+                    'classe_id': classe_id
+                }}
+            )
+
+            flash("Estudante atualizado com sucesso!", "success")
+            return redirect(url_for('adicionar_estudante'))
+
+        # Buscar classes disponíveis para o dropdown
+        classes = list(mongo.db.classes.find())
+
+        return render_template('editar_estudante.html', estudante=estudante, classes=classes)
+
+    except InvalidId:
+        flash("ID inválido.", "error")
+        return redirect(url_for('adicionar_estudante'))
+
+@app.route('/editar_classe/<id>', methods=['GET', 'POST'])
+def editar_classe(id):
+    try:
+        classe = mongo.db.classes.find_one({"_id": ObjectId(id)})
+        if not classe:
+            flash("Classe não encontrada.", "error")
+            return redirect(url_for('adicionar_classe'))
+
+        if request.method == 'POST':
+            novo_nome = request.form.get("classe_nome")
+            if novo_nome:
+                mongo.db.classes.update_one(
+                    {"_id": ObjectId(id)},
+                    {"$set": {"classe": novo_nome}}
+                )
+                flash("Classe atualizada com sucesso!", "success")
+                return redirect(url_for('adicionar_classe'))
+
+        return render_template("editar_classe.html", classe=classe)
+
+    except InvalidId:
+        flash("ID de classe inválido.", "error")
+        return redirect(url_for("adicionar_classe"))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

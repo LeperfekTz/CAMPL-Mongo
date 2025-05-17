@@ -8,7 +8,6 @@
 
     <form method="GET" action="{{ url_for('chamada') }}" class="row g-3 mb-4">
         <div class="col-md-4">
-            <label for="classe" class="form-label">Classe:</label>
             <select name="classe_id" id="classe" class="form-select bg-dark text-light">
                 <option value="">Selecione uma Classe</option>
                 {% for classe in classes %}
@@ -22,12 +21,11 @@
             <button type="submit" class="btn btn-primary w-100">Filtrar</button>
         </div>
     </form>
-
     <h2 class="mb-4">
         Alunos da Classe: {{ classe['classe'] if classe else 'Nenhuma classe selecionada' }}
-      </h2>
-      
-      
+    </h2>
+    
+    {% if classe %}
     <form method="POST" action="{{ url_for('salvar_presenca') }}">
         <input type="hidden" name="classe_id" value="{{ request.args.get('classe_id') }}">
         <div class="table-responsive mb-4">
@@ -55,6 +53,7 @@
         </div>
         <button type="submit" class="btn btn-success">Salvar Presença</button>
     </form>
-</div>
+    {% endif %}
+    
 {% endblock %}
 

@@ -32,6 +32,7 @@
 
         <div class="collapse navbar-collapse" id="navbarConteudo">
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
             <li class="nav-item">
               <a
                 class="nav-link {% if request.endpoint == 'chamada' %}active{% endif %}"
@@ -39,21 +40,77 @@
                 >Chamada</a
               >
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('adicionar_classe') }}"
-                >Adicionar Classe</a
+
+            <!-- Dropdown Classe -->
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle {% if request.endpoint in ['adicionar_classe', 'editar_classe'] %}active{% endif %}"
+                href="#"
+                id="navbarDropdownClasse"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
               >
+                Classe
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdownClasse">
+                <li>
+                  <a
+                    class="dropdown-item {% if request.endpoint == 'adicionar_classe' %}active{% endif %}"
+                    href="{{ url_for('adicionar_classe') }}"
+                    >Adicionar Classe</a
+                  >
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  {% if classe is defined %}
+                    <a class="dropdown-item" href="{{ url_for('editar_classe', id=classe.id) }}">Editar Classe</a>
+                  {% else %}
+                    <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Editar Classe</a>
+                  {% endif %}
+                </li>
+              </ul>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('adicionar_estudante') }}"
-                >Adicionar Estudante</a
+
+            <!-- Dropdown Estudante -->
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle {% if request.endpoint in ['adicionar_estudante', 'editar_estudante'] %}active{% endif %}"
+                href="#"
+                id="navbarDropdownEstudante"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
               >
+                Estudante
+              </a>
+              <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdownEstudante">
+                <li>
+                  <a
+                    class="dropdown-item {% if request.endpoint == 'adicionar_estudante' %}active{% endif %}"
+                    href="{{ url_for('adicionar_estudante') }}"
+                    >Adicionar Estudante</a
+                  >
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  {% if estudante is defined %}
+                    <a class="dropdown-item" href="{{ url_for('editar_estudante', id=estudante.id) }}">Editar Estudante</a>
+                  {% else %}
+                    <a class="dropdown-item disabled" href="#" tabindex="-1" aria-disabled="true">Editar Estudante</a>
+                  {% endif %}
+                </li>
+              </ul>
             </li>
+
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('lista_presenca') }}"
+              <a
+                class="nav-link {% if request.endpoint == 'lista_presenca' %}active{% endif %}"
+                href="{{ url_for('lista_presenca') }}"
                 >Histórico de Chamadas</a
               >
             </li>
+
           </ul>
         </div>
       </div>
