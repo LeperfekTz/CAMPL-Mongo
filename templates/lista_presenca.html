@@ -38,11 +38,13 @@
 <div class="table-responsive">
   <table class="table table-dark table-striped table-bordered align-middle">
       <thead>
+        <thead>
           <tr>
               <th>Data</th>
               <th>Classe</th>
               <th>Aluno</th>
-              <th>Presença</th>
+              <th>Presença Turno 1</th>
+              <th>Presença Turno 2</th>
           </tr>
       </thead>
       <tbody>
@@ -52,7 +54,14 @@
               <td>{{ registro['nome_classe'] }}</td>
               <td>{{ registro['nome_aluno'] }}</td>
               <td>
-                {% if registro.get('presenca', True) %}
+                {% if registro.get('presenca_turno1', False) %}
+                  <span class="badge bg-success">Presente</span>
+                {% else %}
+                  <span class="badge bg-danger">Ausente</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if registro.get('presenca_turno2', False) %}
                   <span class="badge bg-success">Presente</span>
                 {% else %}
                   <span class="badge bg-danger">Ausente</span>
@@ -61,6 +70,7 @@
           </tr>
           {% endfor %}
       </tbody>
+      
   </table>
 </div>
 {% elif request.args.get('classe') %}

@@ -45,14 +45,18 @@
                 <tbody>
                     {% for aluno in alunos %}
                     <tr>
-                        <td>{{ aluno['nome'] }}</td>
                         <td>
-                            <div class="form-check">
-                                <input type="hidden" name="aluno_id[]" value="{{ aluno['_id'] }}">
-                                <input type="checkbox" class="form-check-input" name="presenca_{{ aluno['_id'] }}">
-                            </div>
+                          <input type="hidden" name="aluno_id[]" value="{{ aluno._id }}">
+                          {{ aluno.nome }}
                         </td>
-                    </tr>
+                        <td>
+                          <input type="checkbox" name="presenca_{{ aluno._id }}_1"> Turno 1
+                        </td>
+                        <td>
+                          <input type="checkbox" name="presenca_{{ aluno._id }}_2"> Turno 2
+                        </td>
+                      </tr>
+                      
                     {% endfor %}
                 </tbody>
             </table>

@@ -122,6 +122,7 @@ def lista_presenca():
         registros=registros
     )
 
+
 @app.route("/salvar_presenca", methods=["POST"])
 def salvar_presenca():
     try:
@@ -133,18 +134,21 @@ def salvar_presenca():
         aluno_ids = request.form.getlist('aluno_id[]')
 
         for aluno_id in aluno_ids:
-            presente = f'presenca_{aluno_id}' in request.form
+            presente_turno1 = f'presenca_{aluno_id}_1' in request.form
+            presente_turno2 = f'presenca_{aluno_id}_2' in request.form
 
             aluno = mongo.db.estudantes.find_one({"_id": ObjectId(aluno_id)})
             classe = mongo.db.classes.find_one({"_id": ObjectId(classe_id)})
 
             mongo.db.Lista_chamada.insert_one({
-                "data": datetime.now(),
+                "data": datetime.utcnow(),
                 "nome_aluno": aluno['nome'] if aluno else None,
                 "email_aluno": aluno['email'] if aluno else None,
                 "nome_classe": classe['classe'] if classe else None,
-                "presenca": presente,
+                "presenca_turno1": presente_turno1,
+                "presenca_turno2": presente_turno2,
                 "classe_id": ObjectId(classe_id),
+                "presenca_adicional": None
             })
 
         flash("Presenças registradas com sucesso!")
@@ -153,6 +157,9 @@ def salvar_presenca():
     except Exception as e:
         flash(f"Ocorreu um erro ao registrar as presenças: {str(e)}")
         return redirect(url_for('chamada'))
+
+
+    
 @app.route("/chamada", methods=["GET", "POST"])
 def chamada():
     try:
@@ -160,14 +167,13 @@ def chamada():
 
         if classe_id:
             classe = mongo.db.classes.find_one({"_id": ObjectId(classe_id)})
-            alunos = list(mongo.db.estudantes.find({"classe_id": classe_id}))  # Sem    
+            alunos = list(mongo.db.estudantes.find({"classe_id": classe_id}))   
         else:
             classe = None
             alunos = list(mongo.db.estudantes.find())
 
         classes = list(mongo.db.classes.find())
 
-        # Converte os _id para string para usar no template
         for aluno in alunos:
             aluno['_id'] = str(aluno['_id'])
 
