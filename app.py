@@ -256,10 +256,11 @@ def api_estudantes():
     for e in estudantes:
         result.append({
             '_id': str(e['_id']),  # Convertendo ObjectId para string
-            'nome': e['nome'],
-            'classe_id': str(e.get('classe_id', ''))  # Adicionando classe_id se necessário
+            'nome': e.get('nome', ''),
+            'classe_id': str(e['classe_id']) if 'classe_id' in e else ''
         })
     return jsonify(result)
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
 
