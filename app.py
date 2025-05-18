@@ -6,7 +6,8 @@ from datetime import datetime, time
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
 from bson.errors import InvalidId
-
+import pandas as pd
+import os
 
 
 
@@ -20,6 +21,8 @@ mongo = PyMongo(app)
 @app.route('/')
 def index():
     return redirect(url_for('login'))
+
+from flask import jsonify
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -37,7 +40,45 @@ def login():
             return redirect(url_for('login'))
 
     return render_template('login.html')
-from datetime import datetime
+
+@app.route('/importar_alunos', methods=['GET', 'POST'])
+def importar_alunos():
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if not file:
+            flash('Nenhum arquivo enviado', 'danger')
+            return redirect(request.url)
+
+        try:
+            df = pd.read_excel(file)
+        except Exception as e:
+            flash(f'Erro ao ler o arquivo Excel: {e}', 'danger')
+            return redirect(request.url)
+
+        alunos = []
+        for _, row in df.iterrows():
+            aluno = {
+                "nome": row.get('nome'),
+                "email": row.get('email'),
+                "matricula": row.get('matricula'),
+                "data_nascimento": None,
+                "telefone": row.get('telefone'),
+                "turma": row.get('turma'),
+            }
+            # Converter data_nascimento para datetime.date se vier no Excel
+            if pd.notna(row.get('data_nascimento')):
+                aluno["data_nascimento"] = pd.to_datetime(row['data_nascimento']).date()
+            alunos.append(aluno)
+
+        if alunos:
+            mongo.db.alunos.insert_many(alunos)
+            flash(f'{len(alunos)} alunos importados com sucesso!', 'success')
+        else:
+            flash('Nenhum aluno válido para importar.', 'warning')
+
+        return redirect(url_for('importar_alunos'))
+
+    return render_template('importar_alunos.html')
 
 @app.route('/lista_presenca', methods=['GET'])
 def lista_presenca():
@@ -253,6 +294,15 @@ def editar_classe(id):
     except InvalidId:
         flash("ID de classe inválido.", "error")
         return redirect(url_for("adicionar_classe"))
+    
+@app.route('/pagina_com_modal')
+def pagina_com_modal():
+    classes = list(mongo.db.classes.find())
+    # converter _id para string para evitar problemas no template:
+    for c in classes:
+        c['_id'] = str(c['_id'])
+    return render_template("pagina_com_modal.html", classes=classes)
+
 
 @app.route('/api/classes')
 def listar_classes():
