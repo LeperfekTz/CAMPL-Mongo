@@ -21,10 +21,16 @@
             <button type="submit" class="btn btn-primary w-100">Filtrar</button>
         </div>
     </form>
-    <h2 class="mb-4">
-        Alunos da Classe: {{ classe['classe'] if classe else 'Nenhuma classe selecionada' }}
-    </h2>
-    
+    {% if not request.args.get('classe_id') %}
+    <p class="alert alert-danger mt-2">Nenhuma classe selecionada.</p>
+  {% else %}
+    {% if classe %}
+      <h2 class="mb-4">
+        Alunos da Classe: {{ classe['classe'] }}
+      </h2>
+    {% endif %}
+  {% endif %}
+  
     {% if classe %}
     <form method="POST" action="{{ url_for('salvar_presenca') }}">
         <input type="hidden" name="classe_id" value="{{ request.args.get('classe_id') }}">
