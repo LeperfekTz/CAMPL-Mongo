@@ -6,29 +6,45 @@
     max-width: 100%;
     padding: 0 1rem;
   }
+  .btn-check:checked + .btn {
+    background-color: #198754 !important; /* cor verde do Bootstrap (btn-success) */
+    border-color: #198754 !important;
+    color: white !important;
+  }
+  .btn-outline-primary:hover {
+    background-color: #cfe2ff; /* azul clarinho */
+    color: #084298;
+  }
+  
 
+  
   .main-header {
     text-align: center;
   }
 
-  .navbar-nav {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 
-  .navbar-nav .nav-item {
-    margin-bottom: 0.5rem;
-    width: 100%;
-  }
-
-  .navbar-nav .nav-link {
-    padding-left: 1rem;
-  }
 
   .navbar-toggler {
-    margin-left: auto;
-    margin-right: auto;
+    background-color: #084298 !important; /* cor normal */
+    border: 1px solid rgba(204, 204, 204, 0.62)298;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
   }
+  
+  .navbar-toggler:hover {
+    background-color: rgba(0, 0, 251, 0.7) !important; /* cor ao passar o mouse */
+  }
+  
+  /* Remove a imagem padrão do Bootstrap */
+  .navbar-toggler-icon {
+    background-image: none !important;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: #ffffff; /* ou qualquer cor para o "ícone" */
+    mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='white' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") no-repeat center;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='white' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") no-repeat center;
+  }
+  
 
   .table-responsive {
     overflow-x: auto;
@@ -113,12 +129,3 @@
   font-weight: 500;
 }
 
-/* Inputs e selects */
-#modalImportarAlunos input.form-control,
-#modalImportarAlunos select.form-select {
-  background-color: #23272a;
-  border: 1px solid #7289da;
-  color: #eee;
-}
-
-/* Botão fechar */
