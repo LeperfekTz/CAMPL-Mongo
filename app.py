@@ -40,45 +40,43 @@ def login():
             return redirect(url_for('login'))
 
     return render_template('login.html')
-
-@app.route('/importar_alunos', methods=['GET', 'POST'])
+@app.route('/importar_alunos', methods=['POST'])
 def importar_alunos():
-    if request.method == 'POST':
-        file = request.files.get('file')
-        if not file:
-            flash('Nenhum arquivo enviado', 'danger')
-            return redirect(request.url)
+    file = request.files.get('arquivoExcel')
+    classe_id = request.form.get('classe_id')  # ← pega a classe enviada no form
 
-        try:
-            df = pd.read_excel(file)
-        except Exception as e:
-            flash(f'Erro ao ler o arquivo Excel: {e}', 'danger')
-            return redirect(request.url)
+    if not file or not classe_id:
+        flash('Arquivo Excel e classe são obrigatórios.', 'danger')
+        return redirect(url_for('chamada'))
 
-        alunos = []
-        for _, row in df.iterrows():
-            aluno = {
-                "nome": row.get('nome'),
-                "email": row.get('email'),
-                "matricula": row.get('matricula'),
-                "data_nascimento": None,
-                "telefone": row.get('telefone'),
-                "turma": row.get('turma'),
+    try:
+        df = pd.read_excel(file)
+    except Exception as e:
+        flash(f'Erro ao ler o arquivo Excel: {e}', 'danger')
+        return redirect(url_for('chamada'))
+
+    estudantes = []
+    for _, row in df.iterrows():
+        nome = row.get('nome')
+        email = row.get('email')
+        idade = row.get('idade')
+
+        if pd.notna(nome):
+            estudante = {
+                "nome": nome,
+                "email": email,
+                "idade": idade,
+                "classe_id": classe_id  # ← associa à classe
             }
-            # Converter data_nascimento para datetime.date se vier no Excel
-            if pd.notna(row.get('data_nascimento')):
-                aluno["data_nascimento"] = pd.to_datetime(row['data_nascimento']).date()
-            alunos.append(aluno)
+            estudantes.append(estudante)
 
-        if alunos:
-            mongo.db.alunos.insert_many(alunos)
-            flash(f'{len(alunos)} alunos importados com sucesso!', 'success')
-        else:
-            flash('Nenhum aluno válido para importar.', 'warning')
+    if estudantes:
+        mongo.db.estudantes.insert_many(estudantes)
+        flash(f'{len(estudantes)} estudantes importados com sucesso!', 'success')
+    else:
+        flash('Nenhum estudante válido para importar.', 'warning')
 
-        return redirect(url_for('importar_alunos'))
-
-    return render_template('importar_alunos.html')
+    return redirect(url_for('chamada'))
 
 @app.route('/lista_presenca', methods=['GET'])
 def lista_presenca():
