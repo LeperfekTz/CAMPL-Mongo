@@ -2,7 +2,7 @@ from flask import jsonify
 from flask_pymongo import PyMongo
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from pymongo.errors import ConnectionFailure
-from datetime import datetime
+from datetime import datetime, time
 from werkzeug.security import generate_password_hash, check_password_hash
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -37,14 +37,17 @@ def login():
             return redirect(url_for('login'))
 
     return render_template('login.html')
+from datetime import datetime
 
 @app.route('/lista_presenca', methods=['GET'])
 def lista_presenca():
-    selected_classe = request.args.get('classe')  # ID da classe selecionada (como string)
+    selected_classe = request.args.get('classe')  # ID da classe
+    data_filtro = request.args.get('data')        # Data em formato 'YYYY-MM-DD'
     registros = []
 
     # Obtém todas as classes
     classes = list(mongo.db.classes.find())
+    selected_classe_nome = None
 
     if selected_classe:
         try:
@@ -52,20 +55,29 @@ def lista_presenca():
             selected_classe_obj = mongo.db.classes.find_one({"_id": classe_obj_id})
             selected_classe_nome = selected_classe_obj['classe'] if selected_classe_obj else None
 
-            # Filtra registros da classe selecionada
-            registros = list(mongo.db.Lista_chamada.find({"classe_id": ObjectId(selected_classe)}))
+            # Cria filtro para consulta
+            filtro = {"classe_id": classe_obj_id}
+
+            # Se a data foi informada, adiciona ao filtro
+            if data_filtro:
+                try:
+                    data_obj = datetime.strptime(data_filtro, "%Y-%m-%d")
+                    # Filtra pela data no mesmo dia (ignorar hora)
+                    proximo_dia = data_obj.replace(hour=23, minute=59, second=59)
+                    filtro["data"] = {"$gte": data_obj, "$lte": proximo_dia}
+                except ValueError:
+                    flash("Data inválida.", "error")
+
+            registros = list(mongo.db.Lista_chamada.find(filtro))
+
         except Exception as e:
             flash(f"Erro ao buscar registros: {e}", "error")
-            selected_classe_nome = None
-    else:
-        # Exibe todas as presenças de todas as classes
-        registros = list(mongo.db.Lista_chamada.find())
 
     return render_template(
         'lista_presenca.html',
         classes=classes,
         selected_classe=selected_classe,
-        selected_classe_nome=selected_classe_nome if selected_classe else None,
+        selected_classe_nome=selected_classe_nome,
         registros=registros
     )
 
