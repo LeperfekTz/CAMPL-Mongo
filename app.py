@@ -25,8 +25,6 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["MONGO_URI"] = mongo_uri  # Usa a URI diretamente do .env
 mongo = PyMongo(app)
 
-print("MONGO_URI =", os.environ.get("MONGO_URI"))
-print("SECRET_KEY =", os.environ.get("SECRET_KEY"))
 
 login_manager = LoginManager()
 login_manager.init_app(app)
