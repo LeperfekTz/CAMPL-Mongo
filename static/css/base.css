@@ -127,3 +127,8 @@
   font-weight: 500;
 }
 
+.btn-check:checked + .btn {
+  background-color: #198754 !important; /* cor verde do Bootstrap (btn-success) */
+  border-color: #198754 !important;
+  color: white !important;
+}
