@@ -8,21 +8,62 @@ from bson import ObjectId
 from bson.errors import InvalidId
 import pandas as pd
 import os
+from functools import wraps
+from flask import jsonify
+from dotenv import load_dotenv
+from flask_login import LoginManager, UserMixin
 
 
+load_dotenv()
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "Leperfetk210822."  # Necessário para usar flash messages
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")  # Necessário para usar flash messages
 
 # Conexão com o MongoDB Atlas (Altere suas credenciais de forma segura)
-app.config["MONGO_URI"] = "mongodb+srv://leonardoarmbruster:Leperfekt210822.@mongodb.fcezg.mongodb.net/CAMPL?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 mongo = PyMongo(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+class User(UserMixin):
+    def __init__(self, id, tipo):
+        self.id = id
+        self.tipo = tipo
+
+# Simulando banco de dados
+users = {
+    "1": User("1", "admin"),
+    "2": User("2", "professor")
+}
+
+@login_manager.user_loader
+def load_user(user_id):
+    return users.get(user_id)
+
 
 @app.route('/')
 def index():
     return redirect(url_for('login'))
 
-from flask import jsonify
+# Decorator para verificar se é admin
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'tipo_usuario' not in session or session['tipo_usuario'] != 'admin':
+            flash('Acesso restrito a administradores')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Decorator para verificar se é professor ou admin
+def professor_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'tipo_usuario' not in session or session['tipo_usuario'] not in ['professor', 'admin']:
+            flash('Acesso restrito a professores e administradores')
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -34,13 +75,20 @@ def login():
         user = mongo.db.usuarios.find_one({'email': email})
         if user and check_password_hash(user['senha'], senha):
             session['email'] = email
-            return redirect(url_for('chamada'))
+            session['tipo_usuario'] = user['tipo']
+            
+            # Redireciona conforme o tipo de usuário
+            if user['tipo'] == 'admin':
+                return redirect(url_for('chamada'))
+            else:
+                return redirect(url_for('chamada'))
         else:
-            flash('Usuario ou senha invalido')
-            return redirect(url_for('login'))
-
+            flash('Usuário ou senha inválido')
+    
     return render_template('login.html')
+
 @app.route('/importar_alunos', methods=['POST'])
+@admin_required
 def importar_alunos():
     file = request.files.get('arquivoExcel')
     classe_id = request.form.get('classe_id')  # ← pega a classe enviada no form
@@ -182,6 +230,7 @@ def chamada():
 
 
 @app.route("/adicionar_classe", methods=["GET", "POST"])
+@admin_required
 def adicionar_classe():
     if request.method == "POST":
         nomes_classes = request.form.get("classe_nome")
@@ -200,6 +249,7 @@ def adicionar_classe():
 
 
 @app.route('/adicionar_estudante', methods=['GET', 'POST'])
+@admin_required
 def adicionar_estudante():
     if request.method == 'POST':
         # Recebe os dados do formulário
@@ -226,6 +276,7 @@ def adicionar_estudante():
 
 
 @app.route('/editar_estudante/<id>', methods=['GET', 'POST'])
+@admin_required
 def editar_estudante(id):
     try:
         estudante = mongo.db.estudantes.find_one({"_id": ObjectId(id)})
@@ -270,7 +321,9 @@ def editar_estudante(id):
         flash("ID inválido.", "error")
         return redirect(url_for('adicionar_estudante'))
 
+
 @app.route('/editar_classe/<id>', methods=['GET', 'POST'])
+@admin_required
 def editar_classe(id):
     try:
         classe = mongo.db.classes.find_one({"_id": ObjectId(id)})
@@ -300,6 +353,7 @@ def editar_classe(id):
         return redirect(url_for("adicionar_classe"))
     
 @app.route('/pagina_com_modal')
+@admin_required
 def pagina_com_modal():
     classes = list(mongo.db.classes.find())
     # converter _id para string para evitar problemas no template:
@@ -309,6 +363,7 @@ def pagina_com_modal():
 
 
 @app.route('/api/classes')
+@admin_required
 def listar_classes():
     classes_cursor = mongo.db.classes.find()
     classes = list(classes_cursor)
@@ -316,6 +371,7 @@ def listar_classes():
     return jsonify(lista)
 
 @app.route('/api/estudantes')
+@admin_required
 def api_estudantes():
     estudantes = mongo.db.estudantes.find()
     result = []

@@ -1,436 +1,528 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SGC Escolar</title>
-  <!-- Bootstrap CSS -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SGC Escolar</title>
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/base.css') }}"
+    />
+  </head>
+  <body class="bg-dark text-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">SGC Escolar</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarContent"
+          aria-controls="navbarContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
 
-</head>
-<body class="bg-dark text-light">
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">SGC Escolar</a>
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarContent"
-        aria-controls="navbarContent"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-  
-      <div class="collapse navbar-collapse" id="navbarContent">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('chamada') }}">Chamada</a>
-          </li>
-  
-          <!-- Dropdown Classe -->
-          <li class="nav-item dropdown">
-            <a
-              class="nav-link dropdown-toggle"
-              href="#"
-              id="dropdownClasse"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              Classe
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownClasse">
-              <li><a class="dropdown-item" href="{{ url_for('adicionar_classe') }}">Adicionar Classe</a></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li>
-                <button
-                  type="button"
-                  class="dropdown-item"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarClasse"
-                >
-                  Editar Classe
-                </button>
-              </li>
-            </ul>
-          </li>
-  
-          <!-- Dropdown Estudante -->
-          <li class="nav-item dropdown">
-            <a
-              class="nav-link dropdown-toggle"
-              href="#"
-              id="dropdownEstudante"
-              role="button"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              Estudante
-            </a>
-            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownEstudante">
-              <li><a class="dropdown-item" href="{{ url_for('adicionar_estudante') }}">Adicionar Estudante</a></li>
-              <li><hr class="dropdown-divider" /></li>
-              <li>
-                <button
-                  type="button"
-                  class="dropdown-item"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarEstudante"
-                >
-                  Editar Estudante
-                </button>
-              </li>
-              <li>
-                <button
-                  type="button"
-                  class="dropdown-item"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalImportarAlunos"
-                >
-                  Importar Alunos via Excel
-                </button>
-              </li>
-            </ul>
-          </li>
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <!-- Link para Chamada - visível para todos os usuários autenticados -->
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('chamada') }}">Chamada</a>
+            </li>
 
-        <!-- Modal para Importar Alunos via Excel -->
-        <div class="modal fade" id="modalImportarAlunos" tabindex="-1" aria-labelledby="modalImportarAlunosLabel" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <form action="{{ url_for('importar_alunos') }}" method="POST" enctype="multipart/form-data">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="modalImportarAlunosLabel">Importar Alunos via Excel</h5>
-                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="mb-3">
-                    <label for="classeSelect" class="form-label">Selecione a Classe:</label>
-                    <select class="form-select" id="classeSelect" name="classe_id" required>
-                      <option value="" selected disabled>-- Escolha uma classe --</option>
-                      {% for classe in classes %}
-                        <option value="{{ classe._id }}">{{ classe.classe or classe.nome }}</option>
-                      {% endfor %}
-                    </select>                    
-                  </div>
+            <!-- Dropdown Classe - apenas para admin -->
+            {% if 'tipo_usuario' in session and session['tipo_usuario'] ==
+            'admin' %}
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="dropdownClasse"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Classe
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-dark"
+                aria-labelledby="dropdownClasse"
+              >
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('adicionar_classe') }}"
+                    >Adicionar Classe</a
+                  >
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalEditarClasse"
+                  >
+                    Editar Classe
+                  </button>
+                </li>
+              </ul>
+            </li>
+            {% endif %}
 
-                  <div class="mb-3">
-                    <label for="arquivoExcel" class="form-label">Escolha o arquivo Excel (.xlsx ou .xls):</label>
-                    <input
-                      class="form-control"
-                      type="file"
-                      id="arquivoExcel"
-                      name="arquivoExcel"
-                      accept=".xlsx, .xls"
-                      required
-                    />
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                  <button type="submit" class="btn btn-primary">Importar</button>
-                </div>
-              </form>
+            <!-- Dropdown Estudante - apenas para admin -->
+            {% if 'tipo_usuario' in session and session['tipo_usuario'] ==
+            'admin' %}
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="dropdownEstudante"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                Estudante
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-dark"
+                aria-labelledby="dropdownEstudante"
+              >
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{{ url_for('adicionar_estudante') }}"
+                    >Adicionar Estudante</a
+                  >
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalEditarEstudante"
+                  >
+                    Editar Estudante
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalImportarAlunos"
+                  >
+                    Importar Alunos via Excel
+                  </button>
+                </li>
+              </ul>
+            </li>
+            {% endif %}
+
+            <!-- Link para Histórico de Chamadas - visível para professores e admin -->
+            {% if 'tipo_usuario' in session and session['tipo_usuario'] in
+            ['professor', 'admin'] %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('lista_presenca') }}"
+                >Histórico de Chamadas</a
+              >
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Modals - apenas para admin -->
+    {% if 'tipo_usuario' in session and session['tipo_usuario'] == 'admin' %}
+    <!-- Modal para Importar Alunos via Excel -->
+
+    <div
+      class="modal fade"
+      id="modalImportarAlunos"
+      tabindex="-1"
+      aria-labelledby="modalImportarAlunosLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form
+            action="{{ url_for('importar_alunos') }}"
+            method="POST"
+            enctype="multipart/form-data"
+          >
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalImportarAlunosLabel">
+                Importar Alunos via Excel
+              </h5>
+              <button
+                type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+                aria-label="Fechar"
+              ></button>
             </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="classeSelect" class="form-label"
+                  >Selecione a Classe:</label
+                >
+                <select
+                  class="form-select"
+                  id="classeSelect"
+                  name="classe_id"
+                  required
+                >
+                  <option value="" selected disabled>
+                    -- Escolha uma classe --
+                  </option>
+                  {% for classe in classes %}
+                  <option value="{{ classe._id }}">
+                    {{ classe.classe or classe.nome }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="arquivoExcel" class="form-label"
+                  >Escolha o arquivo Excel (.xlsx ou .xls):</label
+                >
+                <input
+                  class="form-control"
+                  type="file"
+                  id="arquivoExcel"
+                  name="arquivoExcel"
+                  accept=".xlsx, .xls"
+                  required
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancelar
+              </button>
+              <button type="submit" class="btn btn-primary">Importar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Editar Classe -->
+    <div
+      class="modal fade"
+      id="modalEditarClasse"
+      tabindex="-1"
+      aria-labelledby="modalEditarClasseLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditarClasseLabel">
+              Escolha uma Classe para Editar
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Fechar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input
+              type="search"
+              class="form-control mb-3"
+              id="inputPesquisarClasse"
+              placeholder="Pesquisar classe"
+              autocomplete="off"
+              aria-label="Pesquisar classe"
+              oninput="pesquisarClasse()"
+            />
+            <ul class="list-group" id="listaClasses">
+              <li class="list-group-item">Carregando...</li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancelar
+            </button>
           </div>
         </div>
-
-  
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('lista_presenca') }}">Histórico de Chamadas</a>
-          </li>
-        </ul>
       </div>
     </div>
-  </nav>
-  
 
-  <!-- Conteúdo principal -->
-  <main class="container mt-4">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
+    <!-- Modal Editar Estudante -->
+    <div
+      class="modal fade"
+      id="modalEditarEstudante"
+      tabindex="-1"
+      aria-labelledby="modalEditarEstudanteLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalEditarEstudanteLabel">
+              Escolha um Estudante para Editar
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Fechar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input
+              type="search"
+              class="form-control mb-3"
+              id="inputPesquisarEstudante"
+              placeholder="Pesquisar estudante"
+              autocomplete="off"
+              aria-label="Pesquisar estudante"
+            />
+            <ul class="list-group" id="listaEstudantes">
+              <li class="list-group-item">Carregando...</li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Editar Estudante -->
+    <div
+      class="modal fade"
+      id="modalEditarEstudante"
+      tabindex="-1"
+      aria-labelledby="modalEditarEstudanteLabel"
+      aria-hidden="true"
+    >
+      <!-- ... conteúdo do modal permanece o mesmo ... -->
+    </div>
+    {% endif %}
+
+    <!-- Conteúdo principal -->
+    <main class="container mt-4">
+      {% with messages = get_flashed_messages() %} {% if messages %}
       <div class="alert alert-success text-dark">
         {% for message in messages %}
-          <div>{{ message }}</div>
+        <div>{{ message }}</div>
         {% endfor %}
       </div>
-      {% endif %}
-    {% endwith %}
-    {% block content %}{% endblock %}
-  </main>
+      {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </main>
 
-  <!-- Modal Editar Classe -->
-  <div
-    class="modal fade"
-    id="modalEditarClasse"
-    tabindex="-1"
-    aria-labelledby="modalEditarClasseLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalEditarClasseLabel">Escolha uma Classe para Editar</h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            data-bs-dismiss="modal"
-            aria-label="Fechar"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <input
-            type="search"
-            class="form-control mb-3"
-            id="inputPesquisarClasse"
-            placeholder="Pesquisar classe"
-            autocomplete="off"
-            aria-label="Pesquisar classe"
-            oninput="pesquisarClasse()"
-          />
-          <ul class="list-group" id="listaClasses">
-            <li class="list-group-item">Carregando...</li>
-          </ul>
-        </div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Modal Editar Estudante -->
-  <div
-    class="modal fade"
-    id="modalEditarEstudante"
-    tabindex="-1"
-    aria-labelledby="modalEditarEstudanteLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalEditarEstudanteLabel">Escolha um Estudante para Editar</h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            data-bs-dismiss="modal"
-            aria-label="Fechar"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <input
-            type="search"
-            class="form-control mb-3"
-            id="inputPesquisarEstudante"
-            placeholder="Pesquisar estudante"
-            autocomplete="off"
-            aria-label="Pesquisar estudante"
-          />
-          <ul class="list-group" id="listaEstudantes">
-            <li class="list-group-item">Carregando...</li>
-          </ul>
-        </div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            data-bs-dismiss="modal"
-          >
-            Cancelar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const listaClasses = document.getElementById('listaClasses')
+        const inputPesquisarClasse = document.getElementById(
+          'inputPesquisarClasse'
+        )
+        const listaEstudantes = document.getElementById('listaEstudantes')
+        const inputPesquisarEstudante = document.getElementById(
+          'inputPesquisarEstudante'
+        )
 
+        let classesCache = [] // Guarda as classes carregadas para filtrar localmente
+        let estudantesCache = [] // Guarda os estudantes carregados para filtrar localmente
 
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-  ></script>
+        // Função debounce para limitar chamadas de pesquisa
+        function debounce(func, timeout = 300) {
+          let timer
+          return (...args) => {
+            clearTimeout(timer)
+            timer = setTimeout(() => {
+              func.apply(this, args)
+            }, timeout)
+          }
+        }
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const listaClasses = document.getElementById("listaClasses");
-      const inputPesquisarClasse = document.getElementById("inputPesquisarClasse");
-      const listaEstudantes = document.getElementById("listaEstudantes");
-      const inputPesquisarEstudante = document.getElementById("inputPesquisarEstudante");
-    
-      let classesCache = []; // Guarda as classes carregadas para filtrar localmente
-      let estudantesCache = []; // Guarda os estudantes carregados para filtrar localmente
-    
-      // Função debounce para limitar chamadas de pesquisa
-      function debounce(func, timeout = 300) {
-        let timer;
-        return (...args) => {
-          clearTimeout(timer);
-          timer = setTimeout(() => { func.apply(this, args); }, timeout);
-        };
-      }
-    
-      // Função para carregar classes via API e armazenar na cache
-      function carregarClasses() {
-        listaClasses.innerHTML = '<li class="list-group-item loading">Carregando classes...</li>';
-    
-        fetch("/api/classes")
-          .then((res) => {
-            if (!res.ok) throw new Error("Erro na requisição");
-            return res.json();
-          })
-          .then((classes) => {
-            classesCache = classes; // armazena para filtro local
-            filtrarClasses(inputPesquisarClasse.value || "");
-          })
-          .catch((error) => {
-            console.error("Erro ao carregar classes:", error);
-            listaClasses.innerHTML = `
+        // Função para carregar classes via API e armazenar na cache
+        function carregarClasses() {
+          listaClasses.innerHTML =
+            '<li class="list-group-item loading">Carregando classes...</li>'
+
+          fetch('/api/classes')
+            .then((res) => {
+              if (!res.ok) throw new Error('Erro na requisição')
+              return res.json()
+            })
+            .then((classes) => {
+              classesCache = classes // armazena para filtro local
+              filtrarClasses(inputPesquisarClasse.value || '')
+            })
+            .catch((error) => {
+              console.error('Erro ao carregar classes:', error)
+              listaClasses.innerHTML = `
               <li class="list-group-item error">
                 Erro ao carregar classes.
                 <button class="btn btn-sm btn-outline-light" onclick="carregarClasses()">
                   Tentar novamente
                 </button>
               </li>
-            `;
-          });
-      }
-    
-      // Função para filtrar classes e atualizar a lista
-      function filtrarClasses(filtro) {
-        const filtroMinusculo = filtro.toLowerCase();
-        let filtradas = classesCache;
-    
-        if (filtroMinusculo) {
-          filtradas = classesCache.filter((c) =>
-            c.nome.toLowerCase().includes(filtroMinusculo)
-          );
+            `
+            })
         }
-    
-        if (filtradas.length === 0) {
-          listaClasses.innerHTML = '<li class="list-group-item">Nenhuma classe encontrada.</li>';
-          return;
-        }
-    
-        listaClasses.innerHTML = "";
-        filtradas.sort((a, b) => a.nome.localeCompare(b.nome));
-        filtradas.forEach((classe) => {
-          const li = document.createElement("li");
-          li.className = "list-group-item list-group-item-action";
-          li.textContent = classe.nome;
-          li.onclick = () => {
-            window.location.href = `/editar_classe/${classe.id}`;
-          };
-          listaClasses.appendChild(li);
-        });
-      }
-    
-      // Função para carregar estudantes via API
-      function carregarEstudantes(filtro = "") {
-        // Se já temos os estudantes em cache, filtre localmente
-        if (estudantesCache.length > 0) {
-          filtrarEstudantes(filtro);
-          return;
-        }
-    
-        listaEstudantes.innerHTML = '<li class="list-group-item loading">Carregando estudantes...</li>';
-    
-        fetch("/api/estudantes")
-          .then((res) => {
-            if (!res.ok) throw new Error("Erro na requisição");
-            return res.json();
+
+        // Função para filtrar classes e atualizar a lista
+        function filtrarClasses(filtro) {
+          const filtroMinusculo = filtro.toLowerCase()
+          let filtradas = classesCache
+
+          if (filtroMinusculo) {
+            filtradas = classesCache.filter((c) =>
+              c.nome.toLowerCase().includes(filtroMinusculo)
+            )
+          }
+
+          if (filtradas.length === 0) {
+            listaClasses.innerHTML =
+              '<li class="list-group-item">Nenhuma classe encontrada.</li>'
+            return
+          }
+
+          listaClasses.innerHTML = ''
+          filtradas.sort((a, b) => a.nome.localeCompare(b.nome))
+          filtradas.forEach((classe) => {
+            const li = document.createElement('li')
+            li.className = 'list-group-item list-group-item-action'
+            li.textContent = classe.nome
+            li.onclick = () => {
+              window.location.href = `/editar_classe/${classe.id}`
+            }
+            listaClasses.appendChild(li)
           })
-          .then((estudantes) => {
-            estudantesCache = estudantes; // Armazena no cache
-            filtrarEstudantes(filtro);
-          })
-          .catch((error) => {
-            console.error("Erro ao carregar estudantes:", error);
-            listaEstudantes.innerHTML = `
+        }
+
+        // Função para carregar estudantes via API
+        function carregarEstudantes(filtro = '') {
+          // Se já temos os estudantes em cache, filtre localmente
+          if (estudantesCache.length > 0) {
+            filtrarEstudantes(filtro)
+            return
+          }
+
+          listaEstudantes.innerHTML =
+            '<li class="list-group-item loading">Carregando estudantes...</li>'
+
+          fetch('/api/estudantes')
+            .then((res) => {
+              if (!res.ok) throw new Error('Erro na requisição')
+              return res.json()
+            })
+            .then((estudantes) => {
+              estudantesCache = estudantes // Armazena no cache
+              filtrarEstudantes(filtro)
+            })
+            .catch((error) => {
+              console.error('Erro ao carregar estudantes:', error)
+              listaEstudantes.innerHTML = `
               <li class="list-group-item error">
                 Erro ao carregar estudantes.
                 <button class="btn btn-sm btn-outline-light" onclick="carregarEstudantes()">
                   Tentar novamente
                 </button>
               </li>
-            `;
-          });
-      }
-    
-      // Função para filtrar estudantes e atualizar a lista
-      function filtrarEstudantes(filtro = "") {
-        const filtroMinusculo = filtro.toLowerCase();
-        let filtrados = estudantesCache;
-    
-        if (filtroMinusculo) {
-          filtrados = estudantesCache.filter(e => 
-            e.nome.toLowerCase().includes(filtroMinusculo)
-          );
+            `
+            })
         }
-    
-        if (filtrados.length === 0) {
-          listaEstudantes.innerHTML = '<li class="list-group-item">Nenhum estudante encontrado.</li>';
-          return;
-        }
-    
-        listaEstudantes.innerHTML = "";
-        filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
-        
-        filtrados.forEach((estudante) => {
-          const li = document.createElement("li");
-          li.className = "list-group-item list-group-item-action";
-          li.textContent = estudante.nome;
-          li.onclick = () => {
-            console.log("Dados do estudante:", estudante);  // Verifique a estrutura do objeto
-            if (estudante._id) {
-                window.location.href = `/editar_estudante/${estudante._id}`;
-            } else {
-                console.error("ID não encontrado em:", estudante);
-                alert("Erro: ID do estudante não encontrado");
-            }
-        };
-          listaEstudantes.appendChild(li);
-        });
-      }
-    
-      // Quando modal Editar Classe abrir, carrega as classes e limpa input de pesquisa
-      const modalEditarClasse = document.getElementById("modalEditarClasse");
-      modalEditarClasse.addEventListener("show.bs.modal", () => {
-        inputPesquisarClasse.value = "";
-        carregarClasses();
-      });
-    
-      // Quando modal Editar Estudante abrir, carrega os estudantes (sem filtro)
-      const modalEditarEstudante = document.getElementById("modalEditarEstudante");
-      modalEditarEstudante.addEventListener("show.bs.modal", () => {
-        inputPesquisarEstudante.value = "";
-        carregarEstudantes();
-      });
-    
-      // Pesquisa dinâmica no input dos estudantes com debounce
-      inputPesquisarEstudante.addEventListener(
-        "input", 
-        debounce(() => filtrarEstudantes(inputPesquisarEstudante.value))
-      );
-    
-      // Pesquisa dinâmica no input das classes com debounce
-      inputPesquisarClasse.addEventListener(
-        "input", 
-        debounce(() => filtrarClasses(inputPesquisarClasse.value))
-      );
-    });
-  </script>
-</body>
-</html>
 
+        // Função para filtrar estudantes e atualizar a lista
+        function filtrarEstudantes(filtro = '') {
+          const filtroMinusculo = filtro.toLowerCase()
+          let filtrados = estudantesCache
+
+          if (filtroMinusculo) {
+            filtrados = estudantesCache.filter((e) =>
+              e.nome.toLowerCase().includes(filtroMinusculo)
+            )
+          }
+
+          if (filtrados.length === 0) {
+            listaEstudantes.innerHTML =
+              '<li class="list-group-item">Nenhum estudante encontrado.</li>'
+            return
+          }
+
+          listaEstudantes.innerHTML = ''
+          filtrados.sort((a, b) => a.nome.localeCompare(b.nome))
+
+          filtrados.forEach((estudante) => {
+            const li = document.createElement('li')
+            li.className = 'list-group-item list-group-item-action'
+            li.textContent = estudante.nome
+            li.onclick = () => {
+              console.log('Dados do estudante:', estudante) // Verifique a estrutura do objeto
+              if (estudante._id) {
+                window.location.href = `/editar_estudante/${estudante._id}`
+              } else {
+                console.error('ID não encontrado em:', estudante)
+                alert('Erro: ID do estudante não encontrado')
+              }
+            }
+            listaEstudantes.appendChild(li)
+          })
+        }
+
+        // Quando modal Editar Classe abrir, carrega as classes e limpa input de pesquisa
+        const modalEditarClasse = document.getElementById('modalEditarClasse')
+        modalEditarClasse.addEventListener('show.bs.modal', () => {
+          inputPesquisarClasse.value = ''
+          carregarClasses()
+        })
+
+        // Quando modal Editar Estudante abrir, carrega os estudantes (sem filtro)
+        const modalEditarEstudante = document.getElementById(
+          'modalEditarEstudante'
+        )
+        modalEditarEstudante.addEventListener('show.bs.modal', () => {
+          inputPesquisarEstudante.value = ''
+          carregarEstudantes()
+        })
+
+        // Pesquisa dinâmica no input dos estudantes com debounce
+        inputPesquisarEstudante.addEventListener(
+          'input',
+          debounce(() => filtrarEstudantes(inputPesquisarEstudante.value))
+        )
+
+        // Pesquisa dinâmica no input das classes com debounce
+        inputPesquisarClasse.addEventListener(
+          'input',
+          debounce(() => filtrarClasses(inputPesquisarClasse.value))
+        )
+      })
+    </script>
+  </body>
+</html>
