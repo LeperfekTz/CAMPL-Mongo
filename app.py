@@ -22,6 +22,8 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")  # Necessário para usar flas
 app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
 
+print("MONGO_URI =", os.environ.get("MONGO_URI"))
+print("SECRET_KEY =", os.environ.get("SECRET_KEY"))
 
 login_manager = LoginManager()
 login_manager.init_app(app)
