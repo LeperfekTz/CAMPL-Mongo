@@ -20,7 +20,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")  # Necessário para usar flash messages
 
 # Conexão com o MongoDB Atlas (Altere suas credenciais de forma segura)
-app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+app.config["MONGO_URI"] = os.environ.get("MONGO_URI")
 mongo = PyMongo(app)
 
 login_manager = LoginManager()
